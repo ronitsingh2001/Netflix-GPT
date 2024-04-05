@@ -1,43 +1,73 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Header from "./Header";
+import { checkValidData } from "../utils/validate";
+import { BG_URL } from "../utils/constant";
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
+  const [errorMes, setErrorMes] = useState(null);
+
+  const fullName = useRef(null);
+  const email = useRef(null);
+  const password = useRef(null);
+
+  const handleButtonClick = () => {
+    const message = !isSignInForm
+      ? checkValidData(
+          email.current.value,
+          password.current.value,
+          fullName?.current?.value
+        )
+      : checkValidData(email.current.value, password.current.value);
+      
+    setErrorMes(message);
+
+    if (message) return;
+
+    if(!isSignInForm){
+
+    }else{
+
+    }
+  };
 
   return (
     <div className="">
       <Header />
       <div className="absolute">
         <div className="absolute w-full h-full bg-[rgba(0,0,0,0.5)] "></div>
-        <img
-          src="https://assets.nflxext.com/ffe/siteui/vlv3/7ca5b7c7-20aa-42a8-a278-f801b0d65fa1/fb548c0a-8582-43c5-9fba-cd98bf27452f/IN-en-20240326-popsignuptwoweeks-perspective_alpha_website_large.jpg"
-          alt="Background"
-        />
+        <img src={BG_URL} alt="Background" />
       </div>
       <form
-        action="#"
-        method="GET"
+        onSubmit={(e) => e.preventDefault()}
         className="py-12 px-10 bg-[rgba(0,0,0,0.7)] rounded-md absolute w-3/12 mx-auto right-0 left-0 mt-20"
       >
         <h1 className="font-bold text-white text-4xl pb-8">Sign In</h1>
         {!isSignInForm && (
           <input
+            ref={fullName}
             type="text"
             placeholder="Full Name"
-            className="p-4 m-2 w-full bg-[rgba(255,255,255,0.07)] border rounded-md"
+            className="p-4 m-2 w-full text-white bg-[rgba(255,255,255,0.07)] border rounded-md"
           />
         )}
         <input
+          ref={email}
           type="text"
           placeholder="Email Address"
-          className="p-4 m-2 w-full bg-[rgba(255,255,255,0.07)] border rounded-md"
+          className="p-4 m-2 w-full text-white bg-[rgba(255,255,255,0.07)] border rounded-md"
         />
         <input
+          ref={password}
           type="password"
           placeholder="Password"
-          className="p-4 m-2 w-full border rounded-md bg-[rgba(255,255,255,0.07)]"
+          className="p-4 m-2 w-full text-white border rounded-md bg-[rgba(255,255,255,0.07)]"
         />
-        <button className="m-2 p-2 text-white font-semibold w-full bg-red-600 rounded-md">
+        <p className="text-red-600 font-semibold m-2 ms-3 w-full">{errorMes}</p>
+        <button
+          className="m-2 p-2 text-white font-semibold w-full bg-red-600 rounded-md"
+          onClick={handleButtonClick}
+        >
           {isSignInForm ? "Sign In" : "Sign Up"}
         </button>
         {isSignInForm && (
