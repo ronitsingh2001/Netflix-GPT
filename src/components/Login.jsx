@@ -2,10 +2,21 @@ import { useRef, useState } from "react";
 import Header from "./Header";
 import { checkValidData } from "../utils/validate";
 import { BG_URL } from "../utils/constant";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
   const [errorMes, setErrorMes] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const fullName = useRef(null);
   const email = useRef(null);
@@ -19,15 +30,66 @@ const Login = () => {
           fullName?.current?.value
         )
       : checkValidData(email.current.value, password.current.value);
-      
+
     setErrorMes(message);
 
     if (message) return;
 
-    if(!isSignInForm){
+    if (!isSignInForm) {
+      // SignUp Logic
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          console.log(user);
+          updateProfile(user, {
+            displayName: fullName.current.value,
+            photoURL: "https://avatars.githubusercontent.com/u/61588179?v=4",
+          })
+            .then(() => {
+              // Profile updated!
+              // ...
+              const { uid, email, displayName, photoURL } = auth.currentUser;
+              dispatch(addUser({ uid, email, displayName, photoURL }));
 
-    }else{
-
+              navigate("/browse");
+            })
+            .catch((error) => {
+              // An error occurred
+              // ...
+              setErrorMes(error.message);
+            });
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          // ..
+          setErrorMes(errorCode);
+        });
+    } else {
+      // SignIn Logic
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/browse");
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMes(errorCode);
+        });
     }
   };
 
@@ -42,7 +104,9 @@ const Login = () => {
         onSubmit={(e) => e.preventDefault()}
         className="py-12 px-10 bg-[rgba(0,0,0,0.7)] rounded-md absolute w-3/12 mx-auto right-0 left-0 mt-20"
       >
-        <h1 className="font-bold text-white text-4xl pb-8">Sign In</h1>
+        <h1 className="font-bold text-white text-4xl pb-8">
+          {isSignInForm ? "Sign In" : "Sign Up"}
+        </h1>
         {!isSignInForm && (
           <input
             ref={fullName}
@@ -106,7 +170,7 @@ const Login = () => {
             href="#"
             onClick={() => setIsSignInForm(!isSignInForm)}
           >
-            {!isSignInForm ? "Sign-up" : "Sign-in"} now
+            {isSignInForm ? "Sign-up" : "Sign-in"} now
           </a>
         </div>
 
